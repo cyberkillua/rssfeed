@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/cyberkillua/rssfeedagg/internal/database"
 	"github.com/go-chi/chi"
@@ -35,10 +36,12 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to connect to database: ", err)
 	}
-
+	db := database.New(connection)
 	apiConfig := apiConfig{
-		DB: database.New(connection),
+		DB: db,
 	}
+
+	go startScrapping(db, 10, time.Hour)
 
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
@@ -57,6 +60,7 @@ func main() {
 	v1Router.Get("/users", apiConfig.middlewareAuth(apiConfig.handlerGetUserByAPIKey))
 	v1Router.Post("/feeds", apiConfig.middlewareAuth(apiConfig.handlerCreateFeed))
 	v1Router.Get("/feeds", apiConfig.getFeeds)
+	v1Router.Post("/follow", apiConfig.middlewareAuth(apiConfig.handlerFeedFollow))
 
 	router.Mount("/v1", v1Router)
 

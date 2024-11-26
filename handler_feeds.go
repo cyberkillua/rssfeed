@@ -51,3 +51,5 @@ func (apiConfig *apiConfig) getFeeds(w http.ResponseWriter, r *http.Request) {
 	}
 	respondWithJSON(w, http.StatusOK, databaseFeedsToFeeds(feeds))
 }
+
+
